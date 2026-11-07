@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "Write and delete attempts on the backup bucket",
+    "FieldSelectors": [
+      { "Field": "eventCategory", "Equals": ["Data"] },
+      { "Field": "resources.type", "Equals": ["AWS::S3::Object"] },
+      { "Field": "readOnly", "Equals": ["false"] },
+      { "Field": "resources.ARN", "StartsWith": ["arn:aws:s3:::comply-backup-lucian-1982/"] }
+    ]
+  }
+]

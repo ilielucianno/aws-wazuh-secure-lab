@@ -1,0 +1,39 @@
+<!-- Custom detection rules, appended to /var/ossec/etc/rules/local_rules.xml.
+     The stock CloudTrail rule 80202 only alerts on event names listed in
+     etc/lists/amazon/aws-eventnames, so these rules also hang off the base rule 80200
+     to see every CloudTrail event, including S3 data events. -->
+
+<group name="amazon,aws_custom,">
+  <!-- Any request refused by AWS: credential misuse, reconnaissance, privilege probing -->
+  <rule id="100500" level="7">
+    <if_sid>80200, 80202, 80203</if_sid>
+    <field name="aws.source">cloudtrail</field>
+    <field name="aws.errorCode">AccessDenied</field>
+    <options>no_full_log</options>
+    <description>AWS: access denied - $(aws.eventName) by $(aws.userIdentity.arn)</description>
+    <group>access_denied,</group>
+  </rule>
+
+  <!-- Attempt to delete or weaken the backups: typical ransomware preparation -->
+  <rule id="100501" level="12">
+    <if_sid>100500</if_sid>
+    <field name="aws.eventName" type="pcre2">^(DeleteObjects?|DeleteBucket|PutBucketLifecycle\w*|PutBucketVersioning)$</field>
+    <field name="aws.requestParameters.bucketName">comply-backup-lucian-1982</field>
+    <options>no_full_log</options>
+    <description>AWS: attempt to delete or tamper with backups in $(aws.requestParameters.bucketName) by $(aws.userIdentity.arn)</description>
+    <mitre>
+      <id>T1490</id>
+    </mitre>
+  </rule>
+</group>
+
+<group name="amazon,aws_custom,tuning,">
+  <!-- False positive found on day one: the console calls Organizations in the background
+       and is refused because the account is not an organization admin. -->
+  <rule id="100502" level="0">
+    <if_sid>100500</if_sid>
+    <field name="aws.eventName">^ListDelegatedAdministrators$</field>
+    <field name="aws.userIdentity.arn">AccountFullAccessRole</field>
+    <description>AWS: known console background call denied (tuned out)</description>
+  </rule>
+</group>

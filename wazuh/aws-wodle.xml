@@ -1,0 +1,17 @@
+<!-- Appended to /var/ossec/etc/ossec.conf on the Wazuh manager.
+     Credentials: profile [cloudtrail] in /root/.aws/credentials (chmod 600),
+     IAM user with read-only access to the CloudTrail bucket only.
+     No region filter on purpose: IAM is a global service and logs to us-east-1. -->
+<ossec_config>
+  <wodle name="aws-s3">
+    <disabled>no</disabled>
+    <interval>10m</interval>
+    <run_on_start>yes</run_on_start>
+    <skip_on_error>yes</skip_on_error>
+    <bucket type="cloudtrail">
+      <name>aws-cloudtrail-logs-ACCOUNT_ID-SUFFIX</name>
+      <aws_profile>cloudtrail</aws_profile>
+      <only_logs_after>2026-NOV-06</only_logs_after>
+    </bucket>
+  </wodle>
+</ossec_config>
