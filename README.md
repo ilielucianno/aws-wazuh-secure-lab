@@ -17,6 +17,26 @@ ransomware incidents: **an attacker on the server tries to destroy the backups.*
 | 3 | Wazuh, running at home, pulls the logs every 10 minutes and applies custom rules | Level 7 alert for the refused listing |
 | 4 | The delete attempt on the backup bucket raises a **level 12 alert mapped to MITRE ATT&CK T1490** (Inhibit System Recovery) | `AWS: attempt to delete or tamper with backups in comply-backup-… by …comply-ec2-ssm-role…` |
 
+![Level 12 alert: attempt to delete the backups](docs/screenshots/01-backup-tamper-alert.jpg)
+
+<details>
+<summary>More evidence</summary>
+
+Alert details, mapped to MITRE ATT&CK T1490 (Impact / Inhibit System Recovery):
+
+![Alert details](docs/screenshots/02-alert-details-mitre.jpg)
+
+Every request refused by AWS, rule 100500:
+
+![Access denied alerts](docs/screenshots/04-access-denied-alerts.jpg)
+
+Security group of the instance: no inbound rules at all:
+
+![Security group with no inbound rules](docs/screenshots/03-security-group-no-inbound.jpg)
+
+Account IDs and other identifiers are masked.
+</details>
+
 ## Architecture
 
 ```mermaid
@@ -127,6 +147,8 @@ management events (free) and a handful of data events per day.
 
 ## Next steps
 
+- Tune out refused calls made by AWS service-linked roles (e.g. `AWSServiceRoleForResourceExplorer`
+  calling `ListEnvironments`), the second false positive seen on day two
 - GuardDuty findings into Wazuh (needs advanced account features)
 - Alert on root-equivalent activity and new access keys outside working hours
 - Infrastructure as code (Terraform) for the whole lab
